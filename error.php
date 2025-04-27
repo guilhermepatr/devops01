@@ -1,4 +1,10 @@
-<?php http_response_code(400); ?>
+<?php
+// Define o código de resposta HTTP
+http_response_code(400);
+
+// Define o cabeçalho de Content-Type explicitamente (boa prática)
+header('Content-Type: text/html; charset=UTF-8');
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -19,7 +25,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <h2 class="mt-5 mb-3">Solicitação Inválida</h2>
-                    <div class="alert alert-danger" aria-live="assertive">
+                    <div class="alert alert-danger" role="alert" aria-live="assertive">
                         <p>Desculpe, houve um problema com sua solicitação. Isso pode ter ocorrido por um dos seguintes motivos:</p>
                         <ul>
                             <li>O ID do insumo não foi fornecido corretamente.</li>
@@ -34,5 +40,3 @@
     </div>
 </body>
 </html>
-
-
