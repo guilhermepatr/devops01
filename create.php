@@ -1,10 +1,11 @@
 <?php
-require_once "config.php"; // Certifique-se que o config.php conecta usando PDO
+require_once "config.php";
 
 $nome_produto = $tipo_material = $quantidade = $valor = "";
 $nome_produto_err = $tipo_material_err = $quantidade_err = $valor_err = "";
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Validação do nome do produto
     $input_nome_produto = trim($_POST["nome_produto"]);
     if (empty($input_nome_produto)) {
         $nome_produto_err = "Por favor, insira o nome do produto.";
@@ -12,6 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $nome_produto = $input_nome_produto;
     }
 
+    // Validação do tipo de material
     $input_tipo_material = trim($_POST["tipo_material"]);
     if (empty($input_tipo_material)) {
         $tipo_material_err = "Por favor, selecione o tipo do material.";
@@ -19,44 +21,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $tipo_material = $input_tipo_material;
     }
 
+    // Validação da quantidade
     $input_quantidade = trim($_POST["quantidade"]);
     if (empty($input_quantidade) || !ctype_digit($input_quantidade)) {
         $quantidade_err = "Por favor, insira um valor inteiro positivo.";
     } else {
-        $quantidade = $input_quantidade;
+        $quantidade = (int)$input_quantidade;
     }
 
+    // Validação do valor
     $input_valor = trim($_POST["valor"]);
-    if (empty($input_valor) || !filter_var($input_valor, FILTER_VALIDATE_FLOAT)) {
+    if (empty($input_valor) || !is_numeric($input_valor)) {
         $valor_err = "Por favor, insira um valor numérico.";
     } else {
-        $valor = $input_valor;
+        $valor = (float)$input_valor;
     }
 
+    // Se não houver erros, insere no banco de dados
     if (empty($nome_produto_err) && empty($tipo_material_err) && empty($quantidade_err) && empty($valor_err)) {
-        $sql = "INSERT INTO insumos (nome, tipo, quantidade, valor) VALUES (:nome, :tipo, :quantidade, :valor)";
-        
-        if ($stmt = $pdo->prepare($sql)) {
-            $stmt->bindParam(":nome", $nome_produto);
-            $stmt->bindParam(":tipo", $tipo_material);
-            $stmt->bindParam(":quantidade", $quantidade, PDO::PARAM_INT);
-            $stmt->bindParam(":valor", $valor);
+        $sql = "INSERT INTO insumos (nome, tipo, quantidade, valor) VALUES ($1, $2, $3, $4)";
+        $params = [$nome_produto, $tipo_material, $quantidade, $valor];
 
-            if ($stmt->execute()) {
-                header("location: index.php");
-                exit();
-            } else {
-                echo "Erro ao inserir os dados.";
-            }
+        $result = pg_query_params($link, $sql, $params);
+
+        if ($result) {
+            header("location: index.php");
+            exit();
+        } else {
+            echo "Erro ao inserir os dados: " . pg_last_error($link);
         }
-        unset($stmt);
     }
-    unset($pdo);
 }
 ?>
- 
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Adicionar Novo Insumo</title>
@@ -79,8 +78,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
                         <div class="form-group">
                             <label>Nome do Produto</label>
-                            <input type="text" name="nome_produto" class="form-control <?php echo (!empty($nome_produto_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $nome_produto; ?>">
-                            <span class="invalid-feedback"><?php echo $nome_produto_err;?></span>
+                            <input type="text" name="nome_produto" class="form-control <?php echo (!empty($nome_produto_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($nome_produto); ?>">
+                            <span class="invalid-feedback"><?php echo $nome_produto_err; ?></span>
                         </div>
                         <div class="form-group">
                             <label>Tipo do Material</label>
@@ -91,17 +90,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <option value="Remédio" <?php echo $tipo_material == 'Remédio' ? 'selected' : ''; ?>>Remédio</option>
                                 <option value="Outros" <?php echo $tipo_material == 'Outros' ? 'selected' : ''; ?>>Outros</option>
                             </select>
-                            <span class="invalid-feedback"><?php echo $tipo_material_err;?></span>
+                            <span class="invalid-feedback"><?php echo $tipo_material_err; ?></span>
                         </div>
                         <div class="form-group">
                             <label>Quantidade</label>
-                            <input type="text" name="quantidade" class="form-control <?php echo (!empty($quantidade_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $quantidade; ?>">
-                            <span class="invalid-feedback"><?php echo $quantidade_err;?></span>
+                            <input type="text" name="quantidade" class="form-control <?php echo (!empty($quantidade_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($quantidade); ?>">
+                            <span class="invalid-feedback"><?php echo $quantidade_err; ?></span>
                         </div>
                         <div class="form-group">
                             <label>Valor</label>
-                            <input type="text" name="valor" class="form-control <?php echo (!empty($valor_err)) ? 'is-invalid' : ''; ?>" value="<?php echo $valor; ?>">
-                            <span class="invalid-feedback"><?php echo $valor_err;?></span>
+                            <input type="text" name="valor" class="form-control <?php echo (!empty($valor_err)) ? 'is-invalid' : ''; ?>" value="<?php echo htmlspecialchars($valor); ?>">
+                            <span class="invalid-feedback"><?php echo $valor_err; ?></span>
                         </div>
                         <input type="submit" class="btn btn-success" value="Enviar">
                         <a href="index.php" class="btn btn-secondary ml-2">Cancelar</a>
@@ -112,4 +111,3 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
-
