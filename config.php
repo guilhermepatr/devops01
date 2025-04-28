@@ -1,6 +1,6 @@
 <?php
 // Configuração da conexão com PostgreSQL
-define('DB_SERVER', 'db.multipass');
+define('DB_SERVER', 'db.insums.com');
 define('DB_PORT', '5432'); // Porta padrão do PostgreSQL
 define('DB_USERNAME', 'phpcrud');
 define('DB_PASSWORD', '123456');
